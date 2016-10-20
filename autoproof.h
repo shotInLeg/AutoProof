@@ -70,15 +70,6 @@ protected:
             p.drawLine(C, E);
             p.drawLine(B, E);
         }
-
-        p.setPen(Qt::blue);
-
-
-        p.drawText(235,75, "C");
-        p.drawText(235,165, "D");
-
-
-
     }
 public:
     void setABAE( int ab , int ae )

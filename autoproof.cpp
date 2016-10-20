@@ -6,9 +6,11 @@ AutoProof::AutoProof(QWidget *parent) :
     ui(new Ui::AutoProof)
 {
     ui->setupUi(this);
-    QLabel * tr = new TrangleView;
-    tr->setGeometry( tr->geometry().x(), tr->geometry().y(), 200, 200 );
-    ui->widgetLayout->addWidget( tr );
+    triangle = new TrangleView(50, 75);
+    triangle->setGeometry( triangle->geometry().x(), triangle->geometry().y(), 200, 200 );
+    ui->widgetLayout->addWidget( triangle );
+
+    step = 1;
 }
 
 AutoProof::~AutoProof()
@@ -18,7 +20,8 @@ AutoProof::~AutoProof()
 
 void AutoProof::on_bSend_clicked()
 {
-    repaint();
+    //repaint();
+    triangle->setStep( ++step );
 }
 
 void AutoProof::viewTriangle()
@@ -28,6 +31,10 @@ void AutoProof::viewTriangle()
 
 void AutoProof::paintEvent(QPaintEvent * event)
 {
+}
 
-
+void AutoProof::on_bRender_clicked()
+{
+    triangle->setABAE(ui->sbAB->value(), ui->sbAE->value());
+    //triangle->repaint();
 }

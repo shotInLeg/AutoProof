@@ -32,7 +32,7 @@ protected:
         QPainter p(this);
 
         int marginLR = ( this->width() - (AE+AB) ) / 2;
-        int marginTB = ( this->height() - AB ) / 2;
+        int marginTB = ( this->height() - AB ) / 2 + 10;
 
         QPoint A(marginLR, marginTB+AB);
         QPoint B(marginLR, marginTB);

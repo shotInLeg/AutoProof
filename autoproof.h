@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QLabel>
 #include <QPainter>
+#include "pythagorasproof.h"
+#include "test.h"
 
 namespace Ui {
 class AutoProof;
@@ -47,9 +49,9 @@ protected:
         p.drawLine(B, E);
 
         p.setPen(Qt::blue);
-        p.drawText(20,165, "A");
-        p.drawText(20,20, "B");
-        p.drawText(100,165, "E");
+        p.drawText(A.x(), A.y()+15, "A");
+        p.drawText(B.x(), B.y()-10, "B");
+        p.drawText(E.x(), E.y()+15, "E");
 
         if( step >= 2 )
         {
@@ -59,8 +61,8 @@ protected:
             p.drawLine(C, E);
 
             p.setPen(Qt::blue);
-            p.drawText(235,75, "C");
-            p.drawText(235,165, "D");
+            p.drawText(C.x(), C.y()-10, "C");
+            p.drawText(D.x(), D.y()+15, "D");
         }
 
         if( step >= 3 )
@@ -108,9 +110,16 @@ private slots:
 protected:
     void paintEvent(QPaintEvent *event);
 
+private slots:
+    void view( QString str );
+
+    void on_bAuto_clicked();
+
 private:
     Ui::AutoProof *ui;
     TrangleView * triangle;
+    PythagorasProof * proof;
+    MyClass * clss;
     int step;
 };
 

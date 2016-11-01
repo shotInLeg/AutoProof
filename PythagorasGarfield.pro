@@ -15,6 +15,7 @@ TEMPLATE = app
 SOURCES += main.cpp\
         autoproof.cpp
 
-HEADERS  += autoproof.h
+HEADERS  += autoproof.h \
+    pythagorasproof.h
 
 FORMS    += autoproof.ui

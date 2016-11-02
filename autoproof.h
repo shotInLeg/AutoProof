@@ -5,7 +5,6 @@
 #include <QLabel>
 #include <QPainter>
 #include "pythagorasproof.h"
-#include "test.h"
 
 namespace Ui {
 class AutoProof;
@@ -119,7 +118,6 @@ private:
     Ui::AutoProof *ui;
     TrangleView * triangle;
     PythagorasProof * proof;
-    MyClass * clss;
     int step;
 };
 

@@ -12,6 +12,8 @@ class PythagorasProof : public QObject
 {
 Q_OBJECT
 public:
+    using Rules = QVector< QPair< QVector<QString>, QVector<QString> > >;
+
     PythagorasProof(){}
     ~PythagorasProof()
     {}
@@ -23,133 +25,58 @@ signals:
 
 public:
 
-    void proof( int step )
+    void addData( const QString& data )
     {
-        if( step == 1 || step == -1 )
-        {
-            S1 = "2(AB*AE)+BE2";
-            S2 = "DE*CD+AB*AE+CD*AE+AB*DE";
-
-            emit send_info( "Имея треугольник ABE досторили его до трапеции, по следующим правилам:" );
-            emit send_info( "   Сторону DE сделаем равной стороне AB" );
-            emit send_info( "   Сторону CD сделаем равной стороне AE" );
-        }
-
-        if( step == 2 || step == -1 )
-        {
-            emit send_info( "Так как мы достраивали теругольник до трапеции, то сумма прощадей трех треугольников равна прощади трапеции." );
-            emit send_info( "    " + S1 + " = " + S2 );
-        }
-
-        if( step == 3 || step == -1 )
-        {
-            emit send_info( "Поскольку стороны AB и DE, AE и CD равны проведем замену в формуле расчета площадей:" );
-
-            S1 = S1.replace("DE", "AB").replace("CD", "AE");
-            S2 = S2.replace("DE", "AB").replace("CD", "AE");
-
-            emit send_info( "    " + S1 + " = " + S2 );
-        }
-
-        if( step == 4 || step == -1 )
-        {
-            emit send_info( "Приведем подобные:" );
-
-            S2 = replaceMirror( S2 );
-
-            emit send_info( "    " + S1 + " = " + S2 );
-        }
-
-        if( step == 5 || step == -1 )
-        {
-            emit send_info( "Привеподобные в левой и правой частях:" );
-
-            QString res = replaceEqual( S1+"="+S2 );
-
-            emit send_info( "    " + res );
-        }
+        this->data.push_back( data );
     }
 
-    QString replaceMirror( const QString& s )
+    void addRule(const QVector<QString>& _if, const QVector<QString>& _then )
     {
-        QString p[] = { "AB", "DE", "AE", "CD" };
-
-        QString res = s;
-
-        for( int i = 0 ; i < 4; i++ )
-        {
-            res = res.replace(p[i]+"*"+p[i], p[i]+"2" );
-        }
-
-        for( int i = 0 ; i < 4; i++ )
-        {
-            for( int j = 0; j < 4; j++ )
-            {
-                if( i == j )
-                    continue;
-
-                res = res.replace( p[i]+"*"+p[j]+"+"+p[i]+"*"+p[j], "2(" + p[i]+"*"+p[j] + ")" );
-            }
-        }
-
-        for( int i = 0 ; i < 4; i++ )
-        {
-            res = res.replace(p[i]+"+"+p[i], "2" + p[i] );
-        }
-
-        return res;
-
+        this->rules.push_back( { _if, _then } );
     }
 
-    QString replaceEqual( const QString& s )
+    void proof()
     {
-        QString res = "";
+        Rules _rules = rules;
+        QVector< QString > _data = data;
 
-        QStringList equal = s.split("=");
-
-
-        QStringList left = equal[0].split("+");
-        QStringList right = equal[1].split("+");
-
-        for( int i = 0; i < left.size(); i++ )
+        int i = 0;
+        while( i < _rules.size() )
         {
-            for( int j = 0; j < right.size(); j++ )
+            bool check = false;
+            for( int j = 0; j < _rules.at(i).first.size(); j++ )
             {
-                if( left[i] == right[j] )
+                check = false;
+                for( int k = 0; k < _data.size(); k++ )
                 {
-                    left[i] = "";
-                    right[j] = "";
+                    if( _rules.at(i).first.at(j) == data.at(k)  )
+                    {
+                        check = true;
+                        break;
+                    }
                 }
+
+                if( check != true )
+                    break;
+            }
+
+            if( check == true )
+            {
+                for( int j = 0; j < _rules.at(i).second.size(); j++ )
+                {
+                    _data.push_back( _rules.at(i).second.at(j) );
+                }
+
+                rules.remove( i );
+
+                i = 0;
             }
         }
-
-        for( int i = 0; i < left.size(); i++ )
-        {
-            if( left[i] != "" )
-                res += left[i];
-
-            if( left[i] != "" && i != left.size()-1 )
-                res += "+";
-        }
-
-        res += "=";
-
-        for( int i = 0; i < right.size(); i++ )
-        {
-            if( right[i] != "" )
-                res += right[i];
-
-            if( right[i] != "" && i != right.size()-1 )
-                res += "+";
-        }
-
-
-        return res;
     }
 
 private:
-    QString S1;
-    QString S2;
+    Rules rules;
+    QVector< QString > data;
 };
 
 #endif // PYTHAGORASPROOF_H

@@ -10,7 +10,6 @@ AutoProof::AutoProof(QWidget *parent) :
     triangle->setGeometry( triangle->geometry().x(), triangle->geometry().y(), 200, 200 );
     ui->widgetLayout->addWidget( triangle );
 
-    clss = new MyClass();
     proof = new PythagorasProof();
 
     connect( proof, SIGNAL( send_info(QString) ), this, SLOT( view(QString) ) );
@@ -28,13 +27,13 @@ void AutoProof::on_bSend_clicked()
     //repaint();
     triangle->setStep( ++step );
 
-    if( step == 2 )
+    /*if( step == 2 )
         view( "Доставиваем еще один треугольник меняя местами размеры соторон." );
     if( step == 3 )
         view( "Достраиваем до трапеции." );
 
     if( step >= 4 )
-        proof->proof( step-3 );
+        proof->proof( step-3 );*/
 }
 
 void AutoProof::viewTriangle()
@@ -69,5 +68,5 @@ void AutoProof::on_bAuto_clicked()
             view( "Достраиваем до трапеции." );
     }
 
-    proof->proof( -1 );
+    //proof->proof( -1 );
 }

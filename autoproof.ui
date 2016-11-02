@@ -104,20 +104,34 @@ p, li { white-space: pre-wrap; }
         <number>0</number>
        </property>
        <item>
-        <widget class="QPushButton" name="bAuto">
-         <property name="text">
-          <string>Автоматически</string>
+        <widget class="QLineEdit" name="lineEdit">
+         <property name="placeholderText">
+          <string>П: У1,..Уn=R1,..Rn  | Д: Д1,..Дn</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="bSend">
          <property name="text">
-          <string>Шаг вперед</string>
+          <string>Добавить праило</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="bAuto">
+         <property name="text">
+          <string>Добавить данные</string>
          </property>
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>Показать список данных</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

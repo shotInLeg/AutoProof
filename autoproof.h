@@ -114,6 +114,8 @@ private slots:
 
     void on_bAuto_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::AutoProof *ui;
     TrangleView * triangle;

@@ -15,6 +15,9 @@ public:
     explicit SProductionSystem(QWidget *parent = 0);
     ~SProductionSystem();
 
+private slots:
+    void on_bDo_clicked();
+
 private:
     Ui::SProductionSystem *ui;
 };

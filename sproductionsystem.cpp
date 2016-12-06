@@ -12,3 +12,8 @@ SProductionSystem::~SProductionSystem()
 {
     delete ui;
 }
+
+void SProductionSystem::on_bDo_clicked()
+{
+
+}

@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVector>
 #include <QMap>
+#include <QDebug>
 
 enum ObjType { Obj = 0, PartOf = 1, DoOn = 2, InProperty = 3 };
 

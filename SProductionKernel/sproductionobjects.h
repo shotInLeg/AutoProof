@@ -6,7 +6,7 @@
 #include <QMap>
 #include <QDebug>
 
-enum ObjType { Obj = 0, PartOf = 1, DoOn = 2, InProperty = 3 };
+enum ObjType { Obj = 0, PartOf = 1, DoOn = 2, InProperty = 3, InRelationship = 4 };
 
 class SPKObject
 {
@@ -56,7 +56,7 @@ public:
 
     ~SPKPartOf()
     {
-        qDebug() << "delete PartOf["<< this <<"]( " << _parent << " -> " <<_subject << " )";
+        qDebug() << "delete PartOf["<< this <<"]( " << _parent << " -> " << _subject << " )";
     }
 
     virtual SPKObject* subject() const;
@@ -121,6 +121,36 @@ public:
 protected:
     SPKObject * _property;
     SPKObject * _subject;
+};
+
+class SPKInRelationship : public SPKObject
+{
+public:
+    SPKInRelationship()
+    {
+        this->_type = InRelationship;
+    }
+
+    SPKInRelationship( const QString& name, SPKObject * subject1, SPKObject * property, SPKObject * subject2 )
+    {
+        this->_name = name;
+        this->_subject1 = subject1;
+        this->_property = property;
+        this->_subject2 = subject2;
+    }
+
+    ~SPKInRelationship()
+    {
+        qDebug() << "delete DoOn["<< this <<"]( " << _subject1 << " -> " << _property << " -> " << _subject2 << " )";
+    }
+
+    virtual SPKObject* object() const;
+    virtual SPKObject* subject() const;
+
+protected:
+    SPKObject * _subject1;
+    SPKObject * _property;
+    SPKObject * _subject2;
 };
 
 

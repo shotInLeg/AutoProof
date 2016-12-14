@@ -15,10 +15,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         sproductionsystem.cpp \
     SProductionKernel/sproductionkernel.cpp \
-    SProductionKernel/sproductionobjects.cpp
+    SProductionKernel/sproductionobjects.cpp \
+    SProductionParser/sproductionparser.cpp
 
 HEADERS  += sproductionsystem.h \
     SProductionKernel/sproductionkernel.h \
-    SProductionKernel/sproductionobjects.h
+    SProductionKernel/sproductionobjects.h \
+    SProductionParser/sproductionparser.h
 
 FORMS    += sproductionsystem.ui

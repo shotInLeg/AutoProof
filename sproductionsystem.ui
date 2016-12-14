@@ -30,7 +30,25 @@
        </widget>
       </item>
       <item>
-       <widget class="QPlainTextEdit" name="pteCode"/>
+       <widget class="QPlainTextEdit" name="pteCode">
+        <property name="plainText">
+         <string>obj MERY
+obj MERM = partof MERY
+obj MER1 = partof MERY
+obj MER2 = partof MERY
+obj MER3 = partof MERY
+obj TOWN
+obj TOWNM = partof TOWN
+obj TOWN1 = partof TOWN
+obj TOWN2 = partof TOWN
+obj TOWN3 = partof TOWN
+obj LIVE
+obj NLIVE
+MER1 = data TOWN1
+MER2 = data TOWN2
+</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QLabel" name="label_6">
@@ -45,7 +63,13 @@
        </widget>
       </item>
       <item>
-       <widget class="QPlainTextEdit" name="plainTextEdit"/>
+       <widget class="QPlainTextEdit" name="plainTextEdit">
+        <property name="plainText">
+         <string>if $1 = MERY then rel $1 LIVE TOWNM 
+if $1 = MERY then rel $1 NLIVE data $1
+if $1 = MERY,$3 = $1 LIVE data $1, $4 = $1 LIVE data $1 then del $3,del $4,obj ERROR = data Protivorechie</string>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">

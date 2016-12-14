@@ -2,6 +2,8 @@
 #define SPRODUCTIONSYSTEM_H
 
 #include <QMainWindow>
+#include "SProductionKernel/sproductionkernel.h"
+
 
 namespace Ui {
 class SProductionSystem;

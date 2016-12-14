@@ -15,5 +15,9 @@ SProductionSystem::~SProductionSystem()
 
 void SProductionSystem::on_bDo_clicked()
 {
+    QString data = ui->pteCode->toPlainText();
+    QString rules = ui->plainTextEdit->toPlainText();
 
+    SProductionKernel sys(data, rules);
+    sys.debugData();
 }

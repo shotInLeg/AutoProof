@@ -21,17 +21,35 @@ public:
         qDebug() << "delete Object[" << this << "]";
     }
 
-    QString name() const;
-    QString data() const;
+    QString name() const
+    {
+        return _name;
+    }
+
+    QString data() const
+    {
+        return _data;
+    }
 
 
-    void setName( const QString& name );
-    void setData( const QString& data );
+    void setName( const QString& name )
+    {
+        _name = name;
+    }
+
+    void setData( const QString& data )
+    {
+        _data = data;
+    }
 
     virtual SPKObject* object() const
     { return NULL; }
     virtual SPKObject* subject() const
     { return NULL; }
+    virtual QString signature() const
+    {
+        return _name;
+    }
 
 protected:
     ObjType _type;
@@ -59,7 +77,20 @@ public:
         qDebug() << "delete PartOf["<< this <<"]( " << _parent << " -> " << _subject << " )";
     }
 
-    virtual SPKObject* subject() const;
+    virtual SPKObject* object() const
+    {
+        return _parent;
+    }
+
+    virtual SPKObject* subject() const
+    {
+        return _subject;
+    }
+
+    virtual QString signature() const
+    {
+        return "partOf|"+_parent->name();
+    }
 
 protected:
     SPKObject * _parent;
@@ -86,8 +117,20 @@ public:
         qDebug() << "delete DoOn["<< this <<"]( " << _doObj << " -> " << _subject << " )";
     }
 
-    virtual SPKObject* object() const;
-    virtual SPKObject* subject() const;
+    virtual SPKObject* object() const
+    {
+        return _doObj;
+    }
+
+    virtual SPKObject* subject() const
+    {
+        return _subject;
+    }
+
+    virtual QString signature() const
+    {
+        return "doOn|"+_doObj->name()+"|"+_subject->name();
+    }
 
 protected:
     SPKObject * _doObj;
@@ -115,8 +158,20 @@ public:
         qDebug() << "delete DoOn["<< this <<"]( " << _property << " -> " << _subject << " )";
     }
 
-    virtual SPKObject* object() const;
-    virtual SPKObject* subject() const;
+    virtual SPKObject* object() const
+    {
+        return _property;
+    }
+
+    virtual SPKObject* subject() const
+    {
+        return _subject;
+    }
+
+    virtual QString signature() const
+    {
+        return "inProp|"+_property->name()+"|"+_subject->name();
+    }
 
 protected:
     SPKObject * _property;
@@ -144,8 +199,20 @@ public:
         qDebug() << "delete DoOn["<< this <<"]( " << _subject1 << " -> " << _property << " -> " << _subject2 << " )";
     }
 
-    virtual SPKObject* object() const;
-    virtual SPKObject* subject() const;
+    virtual SPKObject* object() const
+    {
+        return _subject1;
+    }
+
+    virtual SPKObject* subject() const
+    {
+        return _subject2;
+    }
+
+    virtual QString signature() const
+    {
+        return "inRel|"+_subject1->name()+"|"+_property->name()+"|"+_subject2->name();
+    }
 
 protected:
     SPKObject * _subject1;

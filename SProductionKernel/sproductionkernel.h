@@ -135,8 +135,7 @@ protected:
 
         if( exp.type == MAKEOBJ )
         {
-            qDebug() << exp.data.size();
-            //d[ exp.data.at(0) ] = new SPKObject();
+            d[ exp.data.at(0) ] = new SPKObject( exp.data.at(0) );
         }
 
         if( exp.type == MAKEPARTOF )
@@ -144,7 +143,7 @@ protected:
             SPKObject * parent = NULL;
             if( !this->data.contains( exp.data.at(0) ) && !this->result.contains( exp.data.at(0) ) )
             {
-                parent = d[ exp.data.at(0) ] = new SPKObject();
+                parent = d[ exp.data.at(0) ] = new SPKObject( exp.data.at(0) );
             }
             else
             {
@@ -175,14 +174,14 @@ protected:
     {
         if( exp.type == MAKEOBJ )
         {
-            d[ exp.data.at(0) ] = new SPKObject();
+            d[ exp.data.at(0) ] = new SPKObject( exp.data.at(0) );
         }
         else if( exp.type == MAKEPARTOF )
         {
             SPKObject * parent = NULL;
             if( !this->data.contains( exp.data.at(0) ) && !this->result.contains( exp.data.at(0) ) )
             {
-                parent = d[ exp.data.at(0) ] = new SPKObject();
+                parent = d[ exp.data.at(0) ] = new SPKObject( exp.data.at(0) );
             }
             else
             {
@@ -218,9 +217,21 @@ public:
             qDebug() << it.key() << " : " << (*it)->signature();
         }
         qDebug() << "-------DEBUG RESULT--------";
-        for( auto it = data.begin(); it != data.end(); it++ )
+        for( auto it = result.begin(); it != result.end(); it++ )
         {
             qDebug() << it.key() << " : " << (*it)->signature();
+        }
+        qDebug() << "-------DEBUG RULES--------";
+        for( int i = 0; i < rules.size(); i++ )
+        {
+            QString rule = "[";
+
+            for( int j = 0; j < rules.at(i).data.size(); j++ )
+            {
+                rule += rules.at(i).data.at(j) + "][";
+            }
+
+            qDebug() << rule;
         }
     }
 

@@ -16,6 +16,11 @@ public:
         this->_type = Obj;
     }
 
+    SPKObject( const QString& name )
+    {
+        _name = name;
+    }
+
     ~SPKObject()
     {
         qDebug() << "delete Object[" << this << "]";

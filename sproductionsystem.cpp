@@ -20,4 +20,6 @@ void SProductionSystem::on_bDo_clicked()
 
     SProductionKernel sys(data, rules);
     sys.debugData();
+    sys.proccess();
+    sys.debugData();
 }

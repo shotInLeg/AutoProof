@@ -14,7 +14,12 @@ struct Expression
     ExpressionType type;
     QVector<QString> data;
 
-    Expression(){}
+    Expression()
+    {
+        type = NON;
+        data = QVector<QString>();
+    }
+
     Expression( ExpressionType type, const QVector<QString>& data )
     {
         this->type = type;
@@ -53,31 +58,43 @@ public:
 
     static Expression parseLine( const QString& exp )
     {
-        Expression result( NON, QVector<QString>() );
-
         ExpressionType type = getExpressionType( exp );
-
-        int aaa = 5;
 
         if( type == VAR )
         {
-            result = Expression(type, { exp });
-            qDebug() << "VAR";
+            return Expression(type, { exp });
         }
-
-        if( type == OBJ )
+        else if( type == OBJ )
+        {
+            QStringList lst = exp.split(" ");
+            if( lst.size() > 1 )
+            {
+                QVector<QString> lstV;
+                lstV.push_back( lst.at(0) );
+                return Expression( type, lstV );
+            }
+        }
+        else if( type == MAKEOBJ )
         {
             QStringList lst = exp.split(" ");
             if( lst.size() > 1 )
             {
                 QVector<QString> lstV = lst.toVector();
                 lstV.remove(0);
-                result = Expression( type, lstV );
+                return Expression( type, lstV );
             }
-            qDebug() << "OBJ";
         }
-
-        if( type == IF )
+        else if( type == MAKEPARTOF )
+        {
+            QStringList lst = exp.split(" ");
+            if( lst.size() > 1 )
+            {
+                QVector<QString> lstV = lst.toVector();
+                lstV.remove(0);
+                return Expression( type, lstV );
+            }
+        }
+        else if( type == IF )
         {
             QStringList lst = exp.split(" : ");
             if( lst.size() > 2 )
@@ -86,12 +103,10 @@ public:
                 for( int i = 1; i < lst.size(); i++ )
                     params.push_back( lst.at(i) );
 
-                result = Expression( type, params );
+                return Expression( type, params );
             }
-            qDebug() << "IF";
         }
-
-        if( type == FUNCTION )
+        else if( type == FUNCTION )
         {
             QStringList lst = exp.split(" ");
             if( lst.size() > 1 )
@@ -100,17 +115,11 @@ public:
                 for( int i = 0; i < lst.size(); i++ )
                     params.push_back( lst.at(i) );
 
-                result = Expression( type, params );
+                return Expression( type, params );
             }
-            qDebug() << "FUNCTION";
-        }
-        else
-        {
-            result = Expression( type, QVector<QString>() );
-            qDebug() << "NON";
         }
 
-        return result;
+        return Expression( type, QVector<QString>() );;
     }
 
     static QVector<Expression> parseParams( ExpressionType type, const QString& exp )

@@ -70,14 +70,15 @@ public:
                 //Имортируем данные в map переменных и в map условий
                 for( int j = 0; j < if_bool.size(); j++ )
                 {
-                    if( if_bool.at(i).type == VAR && if_bool.at(i).data.size() > 2 )
+                    if( if_bool.at(j).type == VAR && if_bool.at(j).data.size() > 2 )
                     {
-                        tempData[ if_bool.at(i).data.at(0) ] = if_bool.at(i).data.at(2);
-                        check[ if_bool.at(i).data.at(2) ] = false;
+                        tempData[ if_bool.at(j).data.at(0) ] = if_bool.at(j).data.at(2);
+                        check[ if_bool.at(j).data.at(2) ] = false;
                     }
-                    else if( if_bool.at(i).type == OBJ )
+                    else if( if_bool.at(j).type == OBJ )
                     {
-                        check[ if_bool.at(i).data.at(2) ] = false;
+                        Expression temp = if_bool.at(j);
+                        check[ if_bool.at(j).data.at(0) ] = false;
                     }
                 }
 
@@ -89,7 +90,7 @@ public:
                     for( auto jt = data.begin(); jt != data.end(); jt++ )
                     {
                         //Сравниваем имя, сигнатуру, расширенную сигнатуру
-                        if( it.key() == jt.key() || it.key() == (*jt)->signature() || it.key() == jt.key()+(*jt)->signature() )
+                        if( it.key() == jt.key() || it.key() == (*jt)->signature() || it.key() == jt.key()+(*jt)->signature() || "partof|"+it.key() == (*jt)->signature() )
                         {
                             *it = true;
                         }
@@ -98,7 +99,7 @@ public:
                     //Ищем объек условия в секции результатов (для добавленных другими условиями объектов)
                     for( auto jt = result.begin(); jt != result.end(); jt++ )
                     {
-                        if( it.key() == jt.key() || it.key() == (*jt)->signature() || it.key() == jt.key()+(*jt)->signature() )
+                        if( it.key() == jt.key() || it.key() == (*jt)->signature() || it.key() == jt.key()+(*jt)->signature() || "partof|"+it.key() == (*jt)->signature() )
                         {
                             *it = true;
                         }
@@ -174,36 +175,36 @@ protected:
     {
         if( exp.type == MAKEOBJ )
         {
-            d[ exp.data.at(0) ] = new SPKObject( exp.data.at(0) );
+            d[ exp.data.at(1) ] = new SPKObject( exp.data.at(1) );
         }
         else if( exp.type == MAKEPARTOF )
         {
             SPKObject * parent = NULL;
-            if( !this->data.contains( exp.data.at(0) ) && !this->result.contains( exp.data.at(0) ) )
+            if( !this->data.contains( exp.data.at(1) ) && !this->result.contains( exp.data.at(1) ) )
             {
-                parent = d[ exp.data.at(0) ] = new SPKObject( exp.data.at(0) );
+                parent = d[ exp.data.at(1) ] = new SPKObject( exp.data.at(1) );
             }
             else
             {
-                if( this->data.contains( exp.data.at(0) ) )
-                    parent = this->data[ exp.data.at(0) ];
-                else if( this->result.contains( exp.data.at(0) ) )
-                    parent = this->result[ exp.data.at(0) ];
+                if( this->data.contains( exp.data.at(1) ) )
+                    parent = this->data[ exp.data.at(1) ];
+                else if( this->result.contains( exp.data.at(1) ) )
+                    parent = this->result[ exp.data.at(1) ];
             }
 
-            if( !this->data.contains( exp.data.at(1) ) && !this->result.contains( exp.data.at(1) ) )
+            if( !this->data.contains( exp.data.at(2) ) && !this->result.contains( exp.data.at(2) ) )
             {
-                d[ exp.data.at(1) ] = new SPKPartOf( exp.data.at(1), parent, new SPKObject() );
+                d[ exp.data.at(2) ] = new SPKPartOf( exp.data.at(2), parent, new SPKObject() );
             }
             else
             {
                 SPKObject * child = NULL;
-                if( this->data.contains( exp.data.at(1) ) )
-                    child = this->data[ exp.data.at(1) ];
-                else if( this->result.contains( exp.data.at(1) ) )
-                    child = this->result[ exp.data.at(1) ];
+                if( this->data.contains( exp.data.at(2) ) )
+                    child = this->data[ exp.data.at(2) ];
+                else if( this->result.contains( exp.data.at(2) ) )
+                    child = this->result[ exp.data.at(2) ];
 
-                d[ exp.data.at(1) ] = new SPKPartOf( exp.data.at(1), parent, child );
+                d[ exp.data.at(2) ] = new SPKPartOf( exp.data.at(2), parent, child );
             }
         }
     }

@@ -6,138 +6,176 @@
 #include <QMap>
 #include <QDebug>
 
+#include "SProductionKernel/sproductionobjects.h"
 
-enum ExpressionType { VAR = 0, OBJ, MAKEOBJ, MAKEPARTOF, FUNCTION, IF, IF_BOOL, IF_THEN, IF_ELSE, NON };
-
-struct Expression
-{
-    ExpressionType type;
-    QVector<QString> data;
-
-    Expression()
-    {
-        type = NON;
-        data = QVector<QString>();
-    }
-
-    Expression( ExpressionType type, const QVector<QString>& data )
-    {
-        this->type = type;
-        this->data = data;
-    }
-};
+enum ExpType { NON = 0, IF = 1, OBJ, VAR, MAKEOBJ, MAKEVAR, PARTOF, DOON, INPROP };
 
 class SProductionParser
 {
 public:
     SProductionParser();
 
-    static ExpressionType getExpressionType( const QString& exp )
+    static ExpType getExpressionType( const QString& exp )
     {
 
-        if( exp.startsWith( "obj" ) && exp.contains(" ") )
-            return MAKEOBJ;
+        if( exp.startsWith( "if" ) && exp.contains(" : ") )
+        {
+            QStringList _if = exp.split(" : ");
 
-        if( exp.startsWith( "partof" ) && exp.contains(" ") )
-            return MAKEPARTOF;
-
-        if( exp.startsWith("if") && exp.contains(" : "))
-            return IF;
-
-        if( exp.at(0) == '$' && exp.at(1).isDigit() && !exp.contains(" ") )
+            if( _if.size() == 3 )
+                return IF;
+            else
+                return NON;
+        }
+        else if( exp.at(0) != '$' && !exp.contains(" ") )
+        {
             return VAR;
+        }
+        else if( exp.at(0) == '$' && !exp.contains(" ") )
+        {
+            return VAR;
+        }
+        else if( exp.startsWith("Obj") && exp.contains(" ") )
+        {
+            QStringList pattern = exp.split(" ");
 
-        if( exp.at(0).isLetter() && exp.at(0).isUpper() && !exp.contains(" ") )
-            return OBJ;
+            if( pattern.size() == 2 )
+                return MAKEOBJ;
+        }
+        else if( exp.startsWith("Var") && exp.contains(" ") )
+        {
+            QStringList pattern = exp.split(" ");
 
-        if( exp.at(0).isLetter() && exp.at(0).isLower() && exp.contains(" ") )
-            return FUNCTION;
+            if( pattern.size() == 3 )
+                return MAKEVAR;
+        }
+        else if( exp.startsWith("PartOf") && exp.contains(" ") )
+        {
+            QStringList pattern = exp.split(" ");
 
-        return NON;
+            if( pattern.size() == 3 )
+                return PARTOF;
+        }
+        else if( exp.startsWith("DoOn") && exp.contains(" ") )
+        {
+            QStringList pattern = exp.split(" ");
+
+            if( pattern.size() == 3 )
+                return DOON;
+        }
+        else if( exp.startsWith("InProp") && exp.contains(" ") )
+        {
+            QStringList pattern = exp.split(" ");
+
+            if( pattern.size() == 3 )
+                return INPROP;
+        }
+
+        return Non;
     }
 
-    static Expression parseLine( const QString& exp )
+    static QMap<QString, QString> parse( const QString& exp )
     {
-        ExpressionType type = getExpressionType( exp );
+        QMap<QString, QString> propertyObj;
 
-        if( type == VAR )
+        ExpType type = getExpressionType( exp );
+
+        if( type = IF )
         {
-            return Expression(type, { exp });
+            QStringList sections = exp.split(" : ");
+
+            if( sections.size() < 3 )
+            {
+                qDebug() << "ERROR AT PARSE IF ON: " << exp;
+                exit(-1);
+            }
+
+            propertyObj["type"] = "IF";
+            propertyObj["name"] = "RULE";
+            propertyObj["condition"] = sections.at(1);
+            propertyObj["then"] = sections.at(2);
         }
         else if( type == OBJ )
         {
-            QStringList lst = exp.split(" ");
-            if( lst.size() > 1 )
-            {
-                QVector<QString> lstV;
-                lstV.push_back( lst.at(0) );
-                return Expression( type, lstV );
-            }
+            propertyObj["type"] = "OBJ";
+            propertyObj["name"] = exp;
+        }
+        else if( type == VAR )
+        {
+            propertyObj["type"] = "VAR";
+            propertyObj["name"] = exp;
         }
         else if( type == MAKEOBJ )
         {
-            QStringList lst = exp.split(" ");
-            if( lst.size() > 1 )
+            QStringList sections = exp.split(" ");
+
+            if( sections.size() < 3 )
             {
-                QVector<QString> lstV = lst.toVector();
-                lstV.remove(0);
-                return Expression( type, lstV );
+                qDebug() << "ERROR AT PARSE MAKEOBJ ON: " << exp;
+                exit(-1);
             }
+
+            propertyObj["type"] = "MAKEOBJ";
+            propertyObj["name"] = sections.at(1);
         }
-        else if( type == MAKEPARTOF )
+        else if( type == MAKEVAR )
         {
-            QStringList lst = exp.split(" ");
-            if( lst.size() > 1 )
+            QStringList sections = exp.split(" ");
+
+            if( sections.size() < 3 )
             {
-                QVector<QString> lstV = lst.toVector();
-                lstV.remove(0);
-                return Expression( type, lstV );
+                qDebug() << "ERROR AT PARSE MAKEVAR ON: " << exp;
+                exit(-1);
             }
+
+            propertyObj["type"] = "MAKEVAR";
+            propertyObj["name"] = sections.at(1);
+            propertyObj["value"] = sections.at(2);
         }
-        else if( type == IF )
+        else if( type == PARTOF )
         {
-            QStringList lst = exp.split(" : ");
-            if( lst.size() > 2 )
-            {
-                QVector<QString> params;
-                for( int i = 1; i < lst.size(); i++ )
-                    params.push_back( lst.at(i) );
+            QStringList sections = exp.split(" ");
 
-                return Expression( type, params );
+            if( sections.size() < 3 )
+            {
+                qDebug() << "ERROR AT PARSE PARTOF ON: " << exp;
+                exit(-1);
             }
+
+            propertyObj["type"] = "PARTOF";
+            propertyObj["from"] = sections.at(1);
+            propertyObj["to"] = sections.at(2);
         }
-        else if( type == FUNCTION )
+        else if( type == DOON )
         {
-            QStringList lst = exp.split(" ");
-            if( lst.size() > 1 )
+            QStringList sections = exp.split(" ");
+
+            if( sections.size() < 3 )
             {
-                QVector<QString> params;
-                for( int i = 0; i < lst.size(); i++ )
-                    params.push_back( lst.at(i) );
-
-                return Expression( type, params );
+                qDebug() << "ERROR AT PARSE DOON ON: " << exp;
+                exit(-1);
             }
+
+            propertyObj["type"] = "DOON";
+            propertyObj["from"] = sections.at(1);
+            propertyObj["to"] = sections.at(2);
         }
-
-        return Expression( type, QVector<QString>() );;
-    }
-
-    static QVector<Expression> parseParams( ExpressionType type, const QString& exp )
-    {
-        QVector<Expression> result;
-
-        if( type == IF_BOOL || type == IF_THEN || type == IF_ELSE )
+        else if( type == INPROP )
         {
-            QStringList lst = exp.split(",");
+            QStringList sections = exp.split(" ");
 
-            for( int i = 0; i < lst.size(); i++ )
+            if( sections.size() < 3 )
             {
-                QStringList data = lst.at(i).split(" ");
-                result.push_back( Expression( getExpressionType( lst.at(i) ), data.toVector() ) );
+                qDebug() << "ERROR AT PARSE INPROP ON: " << exp;
+                exit(-1);
             }
+
+            propertyObj["type"] = "INPROP";
+            propertyObj["from"] = sections.at(1);
+            propertyObj["to"] = sections.at(2);
         }
 
-        return result;
+        return propertyObj;
     }
 };
 

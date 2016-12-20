@@ -6,24 +6,90 @@
 #include <QMap>
 #include <QDebug>
 
-enum ObjType { Obj = 0, PartOf = 1, DoOn = 2, InProperty = 3, InRelationship = 4 };
+enum ObjType { Non = 0, Simple = 1, Rule = 2 };
+enum LinkType { Non = 0, PartOf = 1, DoOn, InProp, Pair, If};
+
+class SPKLink
+{
+public:
+    SPKLink()
+    {
+        this->_type = Non;
+    }
+
+    SPKLink( LinkType type, SPKObject * obj )
+    {
+        this->_type = type;
+        this->_object = obj;
+    }
+
+    LinkType type() const
+    {
+        return this->_type;
+    }
+
+    virtual SPKObject * object() const
+    {
+        return _object;
+    }
+
+    virtual SPKLink * link() const
+    {
+        return NULL;
+    }
+
+protected:
+    LinkType _type;
+    SPKObject * _object;
+};
+
+class SPKLinkLink : public SPKLink
+{
+    SPKLinkLink()
+    {
+        this->_type = If;
+    }
+
+    SPKLinkLink( SPKObject * obj, LinkType )
+    {
+        this->_object = obj;
+        this->_type = If;
+    }
+
+    SPKLinkLink( SPKObject * obj, LinkType type, SPKLink * link )
+    {
+        this->_object = obj;
+        this->_type = type;
+        this->_link = link;
+    }
+
+    virtual SPKObject * link() const
+    {
+        return _link;
+    }
+
+protected:
+    SPKLink * _link;
+};
 
 class SPKObject
 {
 public:
     SPKObject()
     {
-        this->_type = Obj;
+        this->_type = Simple;
+        this->_name = "Untitled";
     }
 
     SPKObject( const QString& name )
     {
-        _name = name;
+        this->_name = name;
+        this->_type = Simple;
     }
 
     ~SPKObject()
     {
-        qDebug() << "delete Object[" << this << "]";
+        qDebug() << "delete Object[" << this << "](" << _name << ")";
     }
 
     QString name() const
@@ -31,199 +97,77 @@ public:
         return _name;
     }
 
-    QString data() const
+    ObjType type() const
     {
-        return _data;
+        return this->_type;
     }
 
-
-    void setName( const QString& name )
+    QVector< SPKLink > links() const
     {
-        _name = name;
+        return _link;
     }
 
-    void setData( const QString& data )
+    virtual void addLink( SPKObject* obj, LinkType linkType, SPKObject* obj2 = NULL  )
     {
-        _data = data;
+        _link.push_back( new SPKLink( obj, linkType ) );
     }
 
-    virtual SPKObject* object() const
-    { return NULL; }
-    virtual SPKObject* subject() const
-    { return NULL; }
-    virtual QString signature() const
+    virtual void addThenObject( SPKObject * )
+    {}
+
+    virtual QVector< SPKObject* > newObjects() const
     {
-        return _name;
+        return QVector< SPKObject* >();
     }
 
 protected:
     ObjType _type;
     QString _name;
-    QString _data;
+    QVector< SPKLink > _link;
 };
 
-class SPKPartOf : public SPKObject
+class SPKRule : public SPKObject
 {
 public:
-    SPKPartOf(  )
+    SPKRule()
     {
-        this->_type = PartOf;
+        this->_type = If;
+        this->_name = "Untitled";
     }
 
-    SPKPartOf( const QString& name, SPKObject * parent, SPKObject * subject )
+    SPKRule( const QString& name )
     {
         this->_name = name;
-        this->_parent = parent;
-        this->_subject = subject;
+        this->_type = If;
     }
 
-    ~SPKPartOf()
+    ~SPKObject()
     {
-        qDebug() << "delete PartOf["<< this <<"]( " << _parent << " -> " << _subject << " )";
+        qDebug() << "delete Object[" << this << "](" << _name << ")";
     }
 
-    virtual SPKObject* object() const
+    virtual void addLink( SPKObject* obj, LinkType linkType, SPKObject* obj2 = NULL )
     {
-        return _parent;
+        _link.push_back( new SPKLinkLink( obj, linkType, obj2 ) );
     }
 
-    virtual SPKObject* subject() const
+    virtual void addThenObject( SPKObject * obj )
     {
-        return _subject;
+        this->_then.push_back( obj );
     }
 
-    virtual QString signature() const
+    virtual QVector< SPKObject* > newObjects() const
     {
-        return "partOf|"+_parent->name();
+        return _then;
     }
 
 protected:
-    SPKObject * _parent;
-    SPKObject * _subject;
+    QVector< SPKObject *> _then;
 };
 
-class SPKDoOn : public SPKObject
-{
-public:
-    SPKDoOn()
-    {
-        this->_type = DoOn;
-    }
 
-    SPKDoOn( const QString& name, SPKObject * doObj, SPKObject * subject )
-    {
-        this->_name = name;
-        this->_doObj = doObj;
-        this->_subject = subject;
-    }
 
-    ~SPKDoOn()
-    {
-        qDebug() << "delete DoOn["<< this <<"]( " << _doObj << " -> " << _subject << " )";
-    }
 
-    virtual SPKObject* object() const
-    {
-        return _doObj;
-    }
-
-    virtual SPKObject* subject() const
-    {
-        return _subject;
-    }
-
-    virtual QString signature() const
-    {
-        return "doOn|"+_doObj->name()+"|"+_subject->name();
-    }
-
-protected:
-    SPKObject * _doObj;
-    SPKObject * _subject;
-
-};
-
-class SPKInProperty : public SPKObject
-{
-public:
-    SPKInProperty()
-    {
-        this->_type = InProperty;
-    }
-
-    SPKInProperty( const QString& name, SPKObject * property, SPKObject * subject )
-    {
-        this->_name = name;
-        this->_property = property;
-        this->_subject = subject;
-    }
-
-    ~SPKInProperty()
-    {
-        qDebug() << "delete DoOn["<< this <<"]( " << _property << " -> " << _subject << " )";
-    }
-
-    virtual SPKObject* object() const
-    {
-        return _property;
-    }
-
-    virtual SPKObject* subject() const
-    {
-        return _subject;
-    }
-
-    virtual QString signature() const
-    {
-        return "inProp|"+_property->name()+"|"+_subject->name();
-    }
-
-protected:
-    SPKObject * _property;
-    SPKObject * _subject;
-};
-
-class SPKInRelationship : public SPKObject
-{
-public:
-    SPKInRelationship()
-    {
-        this->_type = InRelationship;
-    }
-
-    SPKInRelationship( const QString& name, SPKObject * subject1, SPKObject * property, SPKObject * subject2 )
-    {
-        this->_name = name;
-        this->_subject1 = subject1;
-        this->_property = property;
-        this->_subject2 = subject2;
-    }
-
-    ~SPKInRelationship()
-    {
-        qDebug() << "delete DoOn["<< this <<"]( " << _subject1 << " -> " << _property << " -> " << _subject2 << " )";
-    }
-
-    virtual SPKObject* object() const
-    {
-        return _subject1;
-    }
-
-    virtual SPKObject* subject() const
-    {
-        return _subject2;
-    }
-
-    virtual QString signature() const
-    {
-        return "inRel|"+_subject1->name()+"|"+_property->name()+"|"+_subject2->name();
-    }
-
-protected:
-    SPKObject * _subject1;
-    SPKObject * _property;
-    SPKObject * _subject2;
-};
 
 
 

@@ -6,18 +6,22 @@
 #include <QMap>
 #include <QDebug>
 
-enum ObjType { Non = 0, Simple = 1, Rule = 2 };
-enum LinkType { Non = 0, PartOf = 1, DoOn, InProp, Pair, If};
+enum ObjType { OTNon = 0, OTSimple = 1, OTRule = 2 };
+enum LinkType { LTNon = 0, LTPartOf = 1, LTDoOn, LTInProp, LTPair, LTLive, LTNotLive, LTIf};
+const QVector<QString> LinkTypeStr = { "Non", "PartOf", "DoOn", "InProp", "Pair", "Live", "NotLive", "If" };
+enum FuncType { FTNon = 0, FTPartOf = 1, FTDoOn, FTInProp, FTPair, FTLive, FTNotLive };
+
+class SPKObject;
 
 class SPKLink
 {
 public:
     SPKLink()
     {
-        this->_type = Non;
+        this->_type = LTNon;
     }
 
-    SPKLink( LinkType type, SPKObject * obj )
+    SPKLink(  SPKObject * obj, LinkType type )
     {
         this->_type = type;
         this->_object = obj;
@@ -45,25 +49,26 @@ protected:
 
 class SPKLinkLink : public SPKLink
 {
+public:
     SPKLinkLink()
     {
-        this->_type = If;
+        this->_type = LTIf;
     }
 
     SPKLinkLink( SPKObject * obj, LinkType )
     {
         this->_object = obj;
-        this->_type = If;
+        this->_type = LTIf;
     }
 
-    SPKLinkLink( SPKObject * obj, LinkType type, SPKLink * link )
+    SPKLinkLink( SPKObject * obj, LinkType type, SPKObject * obj2 )
     {
         this->_object = obj;
         this->_type = type;
-        this->_link = link;
+        this->_link = new SPKLink( obj2 ,type );
     }
 
-    virtual SPKObject * link() const
+    virtual SPKLink * link() const
     {
         return _link;
     }
@@ -77,14 +82,14 @@ class SPKObject
 public:
     SPKObject()
     {
-        this->_type = Simple;
+        this->_type = OTSimple;
         this->_name = "Untitled";
     }
 
     SPKObject( const QString& name )
     {
         this->_name = name;
-        this->_type = Simple;
+        this->_type = OTSimple;
     }
 
     ~SPKObject()
@@ -102,28 +107,28 @@ public:
         return this->_type;
     }
 
-    QVector< SPKLink > links() const
+    QVector< SPKLink* > links() const
     {
         return _link;
     }
 
     virtual void addLink( SPKObject* obj, LinkType linkType, SPKObject* obj2 = NULL  )
     {
-        _link.push_back( new SPKLink( obj, linkType ) );
+        _link.push_back( new SPKLink(obj, linkType) );
     }
 
-    virtual void addThenObject( SPKObject * )
+    virtual void addThenObject( const QString& )
     {}
 
-    virtual QVector< SPKObject* > newObjects() const
+    virtual QVector< QString> newObjects() const
     {
-        return QVector< SPKObject* >();
+        return QVector<QString>();
     }
 
 protected:
     ObjType _type;
     QString _name;
-    QVector< SPKLink > _link;
+    QVector< SPKLink* > _link;
 };
 
 class SPKRule : public SPKObject
@@ -131,17 +136,17 @@ class SPKRule : public SPKObject
 public:
     SPKRule()
     {
-        this->_type = If;
+        this->_type = OTRule;
         this->_name = "Untitled";
     }
 
     SPKRule( const QString& name )
     {
         this->_name = name;
-        this->_type = If;
+        this->_type = OTRule;
     }
 
-    ~SPKObject()
+    ~SPKRule()
     {
         qDebug() << "delete Object[" << this << "](" << _name << ")";
     }
@@ -151,18 +156,18 @@ public:
         _link.push_back( new SPKLinkLink( obj, linkType, obj2 ) );
     }
 
-    virtual void addThenObject( SPKObject * obj )
+    virtual void addThenObject( const QString& action )
     {
-        this->_then.push_back( obj );
+        this->_then.push_back( action );
     }
 
-    virtual QVector< SPKObject* > newObjects() const
+    virtual QVector< QString > newObjects() const
     {
         return _then;
     }
 
 protected:
-    QVector< SPKObject *> _then;
+    QVector<QString> _then;
 };
 
 

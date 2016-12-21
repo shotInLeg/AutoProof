@@ -18,8 +18,10 @@ void SProductionSystem::on_bDo_clicked()
     QString data = ui->pteCode->toPlainText();
     QString rules = ui->plainTextEdit->toPlainText();
 
-    SProductionKernel sys(data, rules);
-    sys.debugData();
-    sys.proccess();
+    SProductionKernel sys;
+    sys.addObject( "Obj A" );
+    sys.addObject("Obj B");
+    sys.addObject( "PartOf A B");
+
     sys.debugData();
 }

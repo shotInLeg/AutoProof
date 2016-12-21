@@ -12,65 +12,83 @@
 class SProductionKernel
 {
 public:
-    SProductionKernel();
+    SProductionKernel(){}
 
-    void addObject( const QString& line )
+    void addObject( const QString& line );
+
+    void proccess();
+
+protected:
+
+    //Проверяет не связан ли объект с другим объектом как на прямую,
+    //так и через тех с кем он связан
+    bool findPartOf( SPKObject * obj, SPKObject * parent )
+    ;
+
+    //Создает объект-условие по входной строке
+    void makeIf( const QString& line )
     {
-        ExpType type = SProductionParser::getExpressionType( line );
         QMap<QString, QString> property = SProductionParser::parse( line );
+        SPKObject * newRule = new SPKRule( "RULE" + QString::number(data.size()) );
 
-        if( type = IF )
+        QStringList conditions = property["condition"].split(", ");
+        QStringList then = property["then"].split(", ");
+
+        //Заполняем список условий
+        for( int i = 0; i < conditions.size(); i++ )
         {
-            SPKObject * newRule = new SPKRule( "RULE" + QString::number(data.size()) );
+            QStringList condition = conditions.at(i).split("|");
 
-
-            QStringList conditions = property["condition"].split(", ");
-            QStringList then = property["then"].split(", ");
-
-            //Заполняем список условий
-            for( int i = 0; i < conditions.size(); i++ )
+            if( condition.size() == 3 )
             {
-                QStringList condition = conditions.at(i).split("|");
+                QString fromCond = condition.at(0);
+                QString typeCond = condition.at(1);
 
-                if( condition.size() == 3 )
+                QString toCond = condition.at(2);
+
+                //Обходим весь список данных ищем совпадения объектов
+                for( int j = 0; j < data.size(); j++ )
                 {
-                    QString fromCond = condition.at(0);
-                    QString typeCond = condition.at(1);
+                    SPKObject * from = NULL;
+                    SPKObject * to = NULL;
 
-                    QString toCond = condition.at(2);
+                    if( data.at(i)->name() == fromCond )
+                    {
+                        from = data.at(i);
+                    }
 
+                    if( data.at(i)->name() == toCond )
+                    {
+                        to = data.at(i);
+                    }
+
+                    if( from != NULL && to != NULL )
+                    {
+                        LinkType linkType = SProductionParser::getLinkType( typeCond );
+                        newRule->addLink( from, linkType, to );
+                    }
+                }
+            }
+
+            if( condition.size() == 2 )
+            {
+                QString typeCond = condition.at(0);
+                QString toCond = condition.at(1);
+
+                if( typeCond == "each" )
+                {
                     //Обходим весь список данных ищем совпадения объектов
                     for( int j = 0; j < data.size(); j++ )
                     {
-                        SPKObject * from = NULL;
-                        SPKObject * to = NULL;
-
-                        if( data.at(i)->name() == from )
+                        QVector<SPKLink*> links = data.at(i)->links();
+                        for( int k = 0; k < links.size(); k++ )
                         {
-                            from = data.at(i);
-                        }
+                            if( links.at(k)->type() == LTPartOf )
+                            {
+                                if( links.at(k)->object()->name() == toCond )
+                                    newRule->addLink( data.at(j), LTPartOf, links.at(k)->object() );
 
-                        if( data.at(i)->name() == to )
-                        {
-                            to = data.at(i);
-                        }
-
-                        if( child != NULL && parent != NULL )
-                        {
-                            LinkType linkType = Non;
-
-                            if( typeCond == "PartOf" )
-                                linkType = PartOf;
-                            else if( typeCond == "DoOn" )
-                                linkType = DoOn;
-                            else if( typeCond == "InProp" )
-                                linkType = InProp;
-                            else if( typeCond == "Pair")
-                                linkType = Pair;
-                            else
-                                linkType = Non;
-
-                            newRule->addLink( from, linkType, to );
+                            }
                         }
                     }
                 }
@@ -81,154 +99,69 @@ public:
             {
                 ExpType typeAction = SProductionParser::getExpressionType( then.at(i) );
 
-                if( typeAction == MAKEOBJ )
-                {
-                    QString name = then.at(i).split(" ").at(1);
-                    newRule->addThenObject( new SPKObject( name ) );
-                }
-                else if( type == PARTOF || type == DOON ||  type == INPROP )
-                {
-                    QString fromName = then.at(i).split(" ").at(0);
-                    QString toName = then.at(i).split(" ").at(2);
+                if( typeAction == NON )
+                    continue;
 
-                    SPKObject * from = NULL;
-                    SPKObject * to = NULL;
-
-                    for( int j = 0; j < data.size(); j++ )
-                    {
-                        if( data.at(i)->name() == fromName )
-                        {
-                            child = data.at(i);
-                        }
-
-                        if( data.at(i)->name() == toName )
-                        {
-                            parent = data.at(i);
-                        }
-                    }
-
-                    QVector<SPKObject*> thenIf = newRule->newObjects();
-                    for( int j = 0; j < thenIf.size(); j++ )
-                    {
-                        if( thenIf.at(j)->name() == fromName )
-                        {
-                            child = thenIf.at(j);
-                        }
-
-                        if( thenIf.at(j)->name() == toName )
-                        {
-                            parent = thenIf.at(i);
-                        }
-                    }
-
-                    if( child != NULL && parent != NULL )
-                    {
-
-                        LinkType linkType = Non;
-
-                        switch (type)
-                        {
-                        case PARTOF:
-                            linkType = PartOf;
-                            break;
-                        case DOON:
-                            linkType = DoOn;
-                            break;
-                        case INPROP:
-                            linkType = InProp;
-                            break;
-                        default:
-                            linkType = Non;
-                            break;
-                        }
-
-                        child->addLink( parent, linkType );
-                    }
-
-
-                }
+                newRule->addThenObject( then.at(i) );
             }
 
             data.push_back( newRule );
         }
-        else if( type == OBJ )
-        {
-        }
-        else if( type == VAR )
-        {
-        }
-        else if( type == MAKEOBJ )
-        {
-            data.push_back( new SPKObject( property["name"] ) );
-        }
-        else if( type == MAKEVAR )
-        {
-            for( int i = 0; i < data.size(); i++ )
-            {
-                if( data.at(i)->name() == property["value"] )
-                {
-                    var[ property["name"] ] = data.at(i);
-                    break;
-                }
-            }
-        }
-        else if( type == PARTOF || type == DOON ||  type == INPROP )
-        {
-            for( int i = 0; i < data.size(); i++ )
-            {
-                SPKObject * child = NULL;
-                SPKObject * parent = NULL;
-
-                if( data.at(i)->name() == property["from"] )
-                {
-                    child = data.at(i);
-                }
-
-                if( data.at(i)->name() == property["to"] )
-                {
-                    parent = data.at(i);
-                }
-
-                if( child != NULL && parent != NULL )
-                {
-                    LinkType linkType = Non;
-
-                    switch (type)
-                    {
-                    case PARTOF:
-                        linkType = PartOf;
-                        break;
-                    case DOON:
-                        linkType = DoOn;
-                        break;
-                    case INPROP:
-                        linkType = InProp;
-                        break;
-                    default:
-                        linkType = Non;
-                        break;
-                    }
-
-                    child->addLink( parent, linkType );
-                }
-            }
-        }
     }
 
-    void proccess()
+    //Создает объект
+    void makeObj( const QString& line )
     {
+        QMap<QString, QString> property = SProductionParser::parse( line );
+        data.push_back( new SPKObject( property["name"] ) );
     }
 
-protected:
+    //Создает переменную
+    void makeVar( const QString& line )
+    {
 
+    }
+
+    //Создет связть между объектами
+    void makeLinks( const QString& line )
+    {
+        QMap<QString, QString> property = SProductionParser::parse( line );
+        for( int i = 0; i < data.size(); i++ )
+        {
+            SPKObject * child = NULL;
+            SPKObject * parent = NULL;
+
+            if( data.at(i)->name() == property["from"] )
+            {
+                child = data.at(i);
+            }
+
+            if( data.at(i)->name() == property["to"] )
+            {
+                parent = data.at(i);
+            }
+
+            if( child != NULL && parent != NULL )
+            {
+                LinkType linkType = SProductionParser::getLinkType( SProductionParser::getExpressionType( line ) );
+                child->addLink( parent, linkType );
+            }
+        }
+    }
 
 public:
     void debugData() const
     {
         qDebug() << "-------DEBUG DATA--------";
-        for( auto it = data.begin(); it != data.end(); it++ )
+        for( int i = 0; i < data.size(); i++ )
         {
-            qDebug() << it.key() << " : " << (*it)->signature();
+            SPKObject * obj = data.at(i);
+            qDebug() << obj->name();
+            for( int j = 0; j < obj->links().size(); j++ )
+            {
+                qDebug() << "    " << SProductionParser::getLinkType( obj->links().at(j)->type() ) << " -> " << obj->links().at(j)->object()->name();
+            }
+            qDebug() << "~~~~~~~~~~~~~~~~~~~~";
         }
     }
 

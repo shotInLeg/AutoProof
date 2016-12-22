@@ -6,6 +6,7 @@ SProductionSystem::SProductionSystem(QWidget *parent) :
     ui(new Ui::SProductionSystem)
 {
     ui->setupUi(this);
+    proc = new SProductionProccessor;
 }
 
 SProductionSystem::~SProductionSystem()
@@ -13,15 +14,45 @@ SProductionSystem::~SProductionSystem()
     delete ui;
 }
 
-void SProductionSystem::on_bDo_clicked()
+void SProductionSystem::on_pushButton_clicked()
 {
-    QString data = ui->pteCode->toPlainText();
-    QString rules = ui->plainTextEdit->toPlainText();
+    QString exp = ui->lineEdit->text();
 
-    SProductionKernel sys;
-    sys.addObject( "Obj A" );
-    sys.addObject("Obj B");
-    sys.addObject( "PartOf A B");
+    if( exp.startsWith("if") )
+    {
+        proc->addRule( exp );
+    }
+    else
+    {
+        proc->addObject( exp );
+    }
 
-    sys.debugData();
+    proc->proccess();
+
+    ui->treeWidget->clear();
+    viewTree( proc->treeView() );
+}
+
+void SProductionSystem::viewTree(const QVector<TreeViewItem> &tree)
+{
+    QTreeWidgetItem *lparentItem = new QTreeWidgetItem();
+    lparentItem->setText(0, "Объекты и их связи");
+
+    for(int i = 0; i < tree.size(); i++)
+    {
+        QTreeWidgetItem *object = new QTreeWidgetItem();
+        object->setText(0, tree[i].name);
+
+        lparentItem->addChild( object );
+
+        for( int j = 0; j < tree.at(i).links.size(); j++ )
+        {
+            QTreeWidgetItem * child = new QTreeWidgetItem();
+            child->setText(0, tree.at(i).links.at(j) );
+
+            object->addChild( child );
+        }
+    }
+
+    ui->treeWidget->addTopLevelItem( lparentItem );
 }

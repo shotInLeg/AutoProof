@@ -2,9 +2,8 @@
 #define SPRODUCTIONSYSTEM_H
 
 #include <QMainWindow>
-#include "SProductionKernel/sproductionkernel.h"
 
-
+#include "SProductionKernel/sproductionproccessor.h"
 namespace Ui {
 class SProductionSystem;
 }
@@ -18,10 +17,13 @@ public:
     ~SProductionSystem();
 
 private slots:
-    void on_bDo_clicked();
+    void on_pushButton_clicked();
+
+    void viewTree( const QVector<TreeViewItem>& tree );
 
 private:
     Ui::SProductionSystem *ui;
+    SProductionProccessor * proc;
 };
 
 #endif // SPRODUCTIONSYSTEM_H

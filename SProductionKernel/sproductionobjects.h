@@ -1,100 +1,75 @@
 #ifndef SPRODUCTIONOBJECTS_H
 #define SPRODUCTIONOBJECTS_H
 
+
 #include <QString>
 #include <QVector>
 #include <QMap>
+#include <QPair>
 #include <QDebug>
 
-enum ObjType { OTNon = 0, OTSimple = 1, OTRule = 2 };
-enum LinkType { LTNon = 0, LTPartOf = 1, LTDoOn, LTInProp, LTPair, LTLive, LTNotLive, LTIf};
-const QVector<QString> LinkTypeStr = { "Non", "PartOf", "DoOn", "InProp", "Pair", "Live", "NotLive", "If" };
-enum FuncType { FTNon = 0, FTPartOf = 1, FTDoOn, FTInProp, FTPair, FTLive, FTNotLive };
+enum SPKLinkType { LNon, LPartOf, LMainOf, LDoOn, LInProp, LLive, LNotLive };
+const QVector<QString> SPKLinkTypeName = { "Non", "PartOf", "MainOf", "DoOn", "InProp", "Live", "NotLive" };
 
+class SPKLink;
 class SPKObject;
 
 class SPKLink
 {
 public:
-    SPKLink()
-    {
-        this->_type = LTNon;
-    }
-
-    SPKLink(  SPKObject * obj, LinkType type )
+    SPKLink(){}
+    SPKLink( SPKLinkType type, SPKObject * obj )
     {
         this->_type = type;
         this->_object = obj;
     }
 
-    LinkType type() const
+    SPKLinkType type() const
     {
-        return this->_type;
+        return _type;
     }
 
-    virtual SPKObject * object() const
+    SPKObject * object() const
     {
         return _object;
     }
 
-    virtual SPKLink * link() const
+    static QString getType( SPKLinkType type )
     {
-        return NULL;
+        return SPKLinkTypeName.at( (int)type );
+    }
+
+    static SPKLinkType getType( const QString& type )
+    {
+        for( int  i = 0; i < SPKLinkTypeName.size(); i++ )
+        {
+            if( SPKLinkTypeName.at(i) == type )
+            {
+                return (SPKLinkType)i;
+            }
+        }
+
+        return LNon;
     }
 
 protected:
-    LinkType _type;
+    SPKLinkType _type;
     SPKObject * _object;
-};
-
-class SPKLinkLink : public SPKLink
-{
-public:
-    SPKLinkLink()
-    {
-        this->_type = LTIf;
-    }
-
-    SPKLinkLink( SPKObject * obj, LinkType )
-    {
-        this->_object = obj;
-        this->_type = LTIf;
-    }
-
-    SPKLinkLink( SPKObject * obj, LinkType type, SPKObject * obj2 )
-    {
-        this->_object = obj;
-        this->_type = type;
-        this->_link = new SPKLink( obj2 ,type );
-    }
-
-    virtual SPKLink * link() const
-    {
-        return _link;
-    }
-
-protected:
-    SPKLink * _link;
 };
 
 class SPKObject
 {
 public:
-    SPKObject()
+    SPKObject(){}
+    SPKObject( const QString& id, const QString& name )
     {
-        this->_type = OTSimple;
-        this->_name = "Untitled";
-    }
-
-    SPKObject( const QString& name )
-    {
+        this->_id = id;
         this->_name = name;
-        this->_type = OTSimple;
     }
 
-    ~SPKObject()
+    QString id() const
     {
-        qDebug() << "delete Object[" << this << "](" << _name << ")";
+        return _id;
     }
 
     QString name() const
@@ -102,78 +77,152 @@ public:
         return _name;
     }
 
-    ObjType type() const
-    {
-        return this->_type;
-    }
-
     QVector< SPKLink* > links() const
     {
-        return _link;
+        return _links;
     }
 
-    virtual void addLink( SPKObject* obj, LinkType linkType, SPKObject* obj2 = NULL  )
+    void addLink( SPKLink * link )
     {
-        _link.push_back( new SPKLink(obj, linkType) );
+        qDebug() << "DEBUG: " << this->name() << " -> " << link->object()->name();
+
+        //Заглушка от зацикливания
+        for( int i = 0; i < _links.size(); i++ )
+        {
+            if( signature(link) == signature( _links.at(i) ) )
+                return;
+
+            if( link->object()->name() == this->name() )
+                return;
+        }
+
+        //Взаимное добавление связи
+        _links.push_back( link );
+
+        if( link->type() == LPartOf )
+            link->object()->addLink( new SPKLink( LMainOf, this ) );
+        else if( link->type() == LMainOf )
+            link->object()->addLink( new SPKLink( LPartOf, this ) );
+        else
+            link->object()->addLink( new SPKLink( link->type(), this ) );
+
+
+        //Запрос к родитем новосвязанного объекта запросить такую же свзяь
+        //для упрощения поиска
+        for( int i = 0; i < link->object()->links().size(); i++ )
+        {
+            if( link->object()->links().at(i)->type() == LPartOf )
+            {
+                link->object()->links().at(i)->object()->addLink( new SPKLink( link->type(), this ) );
+            }
+        }
     }
 
-    virtual void addThenObject( const QString& )
-    {}
-
-    virtual QVector< QString> newObjects() const
+    void view() const
     {
-        return QVector<QString>();
+        qDebug() << "id: " + _id + "; name: " + _name;
+
+        for( int i = 0; i < _links.size(); i++ )
+        {
+            qDebug() << "     [ " + SPKLink::getType( _links.at(i)->type() ) + " ] " + _links.at(i)->object()->id() + " " + _links.at(i)->object()->name();
+        }
+
+        qDebug() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    }
+
+private:
+    QString signature( SPKLink * link ) const
+    {
+        return "|"+SPKLink::getType( link->type() ) + "|" + link->object()->name();
     }
 
 protected:
-    ObjType _type;
+    QString _id;
     QString _name;
-    QVector< SPKLink* > _link;
+    QVector< SPKLink* > _links;
 };
 
-class SPKRule : public SPKObject
+class SPKRule
 {
 public:
-    SPKRule()
+    SPKRule() {}
+    SPKRule( const QString& id )
     {
-        this->_type = OTRule;
-        this->_name = "Untitled";
+        this->_id = id;
+    }
+    SPKRule( const QString& id, const QVector<QString>& cond, const QVector<QString>& actions )
+    {
+        this->_id = id;
+        this->_conditionals = cond;
+        this->_actions = actions;
     }
 
-    SPKRule( const QString& name )
+    QString id() const
     {
-        this->_name = name;
-        this->_type = OTRule;
+        return _id;
     }
 
-    ~SPKRule()
+    QVector<QString> conditional() const
     {
-        qDebug() << "delete Object[" << this << "](" << _name << ")";
+        return _conditionals;
     }
 
-    virtual void addLink( SPKObject* obj, LinkType linkType, SPKObject* obj2 = NULL )
+    QVector<QString> actions() const
     {
-        _link.push_back( new SPKLinkLink( obj, linkType, obj2 ) );
+        return _actions;
     }
 
-    virtual void addThenObject( const QString& action )
+    QString signature() const
     {
-        this->_then.push_back( action );
+        QString sig = "";
+
+
+        if( _conditionals.size() > 0 )
+        {
+            sig += _conditionals.at(0);
+        }
+
+        for( int i = 1; i < _conditionals.size(); i++ )
+        {
+            sig += "," +_conditionals.at(i);
+        }
+
+        return sig;
     }
 
-    virtual QVector< QString > newObjects() const
+    void addConditional( const QString& cond )
     {
-        return _then;
+        this->_conditionals.push_back( cond );
+    }
+
+    void addAction( const QString& action )
+    {
+        this->_actions.push_back( action );
+    }
+
+    void view() const
+    {
+        qDebug() << "id: " + _id;
+
+        for( int i = 0; i < _conditionals.size(); i++ )
+        {
+            qDebug() << "     " + _conditionals.at(i);
+        }
+
+        qDebug() << "..................";
+
+        for( int i = 0; i < _actions.size(); i++ )
+        {
+            qDebug() << "     " + _actions.at(i);
+        }
+
+        qDebug() << "~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     }
 
 protected:
-    QVector<QString> _then;
+    QString _id;
+    QVector<QString> _conditionals;
+    QVector<QString> _actions;
 };
-
-
-
-
-
-
 
 #endif // SPRODUCTIONOBJECTS_H

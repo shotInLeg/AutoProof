@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2016-12-06T17:27:41
+# Project created by QtCreator 2016-12-22T02:30:25
 #
 #-------------------------------------------------
 
@@ -14,13 +14,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         sproductionsystem.cpp \
-    SProductionKernel/sproductionkernel.cpp \
+    SProductionKernel/sproductionproccessor.cpp \
     SProductionKernel/sproductionobjects.cpp \
-    SProductionParser/sproductionparser.cpp
+    SProductionKernel/sproductionlinks.cpp
 
 HEADERS  += sproductionsystem.h \
-    SProductionKernel/sproductionkernel.h \
+    SProductionKernel/sproductionproccessor.h \
     SProductionKernel/sproductionobjects.h \
-    SProductionParser/sproductionparser.h
+    SProductionKernel/sproductionlinks.h
 
 FORMS    += sproductionsystem.ui
